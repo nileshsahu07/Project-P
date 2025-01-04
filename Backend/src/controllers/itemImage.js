@@ -96,10 +96,10 @@ exports.uploadItemImages = async (req, res) => {
 
       const uploadedInfo = await ItemImages.findById(itemImages._id);
 
-      if (!uploadedInfo) throw new ApiError(500, "Image creation failed, please try again.");
+      if (!uploadedInfo) throw new ApiError(500, "Project Data creation failed, please try again.");
 
       return res.status(201).json(
-          new ApiResponse(200, uploadedInfo, "Images uploaded successfully")
+          new ApiResponse(200, uploadedInfo, "Project Data uploaded successfully")
       );
   } catch (error) {
       const statusCode = error.statusCode || 500;
@@ -134,104 +134,120 @@ exports.getItemImages = async (req, res) => {
 
 exports.updateItemImages = async (req, res) => {
   try {
-      const id = req.params.id;
-      const {
-          title,
-          sub_title,
-          category,
-          imageDesc,
-          keyInfoHeading,
-          keyInfoDesc,
-          bigImageDesc,
-          personName,
-          sliderHeading,
-          sliderDesc,
-          thirdImageHeading,
-          thirdImageDesc,
-          feedbackHeading,
-          feedbackDesc,
-          feedbackName,
-      } = req.body;
+    const id = req.params.id;
 
-      const files = req.files; // Access uploaded files
-      const updatedFields = {
-          title,
-          sub_title,
-          category,
-          imageDesc,
-          keyInfoHeading,
-          keyInfoDesc,
-          bigImageDesc,
-          personName,
-          sliderHeading,
-          sliderDesc,
-          thirdImageHeading,
-          thirdImageDesc,
-          feedbackHeading,
-          feedbackDesc,
-          feedbackName,
-      };
+    const {
+      title,
+      sub_title,
+      category,
+      imageDesc,
+      keyInfoHeading,
+      keyInfoDesc,
+      bigImageDesc,
+      personName,
+      sliderHeading,
+      sliderDesc,
+      thirdImageHeading,
+      thirdImageDesc,
+      feedbackHeading,
+      feedbackDesc,
+      feedbackName,
+    } = req.body;
 
-      const existingItem = await ItemImages.findById(id).select(
-          "image bigImage personImage sliderImage thirdImage feedbackImage"
-      );
+    const files = req.files; // Access uploaded files
 
-      if (!existingItem) {
-          throw new ApiError(404, "Item not found");
+    // Fetch the existing item to ensure updates are applied correctly
+    const existingItem = await ItemImages.findById(id).select(
+      "image bigImage personImage sliderImage thirdImage feedbackImage"
+    );
+
+    if (!existingItem) {
+      throw new ApiError(404, "Item not found");
+    }
+
+    // Prepare updated fields dynamically
+    const updatedFields = {};
+
+    const bodyFields = {
+      title,
+      sub_title,
+      category,
+      imageDesc,
+      keyInfoHeading,
+      keyInfoDesc,
+      bigImageDesc,
+      personName,
+      sliderHeading,
+      sliderDesc,
+      thirdImageHeading,
+      thirdImageDesc,
+      feedbackHeading,
+      feedbackDesc,
+      feedbackName,
+    };
+
+    // Include only fields from req.body that are not empty
+    for (const [key, value] of Object.entries(bodyFields)) {
+      if (value && value.trim()) {
+        updatedFields[key] = value;
       }
+    }
 
-      const uploadImageToCloudinary = async (file) => {
-          const imageLocalPath = file.path;
-          const uploadResult = await uploadOnCloudinary(imageLocalPath);
-          return {
-              public_Id: uploadResult.public_id,
-              url: uploadResult.secure_url,
-          };
+    const uploadImageToCloudinary = async (file) => {
+      const imageLocalPath = file.path;
+      const uploadResult = await uploadOnCloudinary(imageLocalPath);
+      return {
+        public_Id: uploadResult.public_id,
+        url: uploadResult.secure_url,
       };
+    };
 
-      if (files) {
-          const fieldsToUpdate = [
-              { key: "image", modelKey: "image" },
-              { key: "bigImage", modelKey: "bigImage" },
-              { key: "personImage", modelKey: "personImage" },
-              { key: "sliderImage", modelKey: "sliderImage" },
-              { key: "thirdImage", modelKey: "thirdImage" },
-              { key: "feedbackImage", modelKey: "feedbackImage" },
-          ];
+    // Include only files from req.files that are provided
+    if (files) {
+      const fieldsToUpdate = [
+        { key: "image", modelKey: "image" },
+        { key: "bigImage", modelKey: "bigImage" },
+        { key: "personImage", modelKey: "personImage" },
+        { key: "sliderImage", modelKey: "sliderImage" },
+        { key: "thirdImage", modelKey: "thirdImage" },
+        { key: "feedbackImage", modelKey: "feedbackImage" },
+      ];
 
-          for (const { key, modelKey } of fieldsToUpdate) {
-              if (files[key]) {
-                  const uploadedImage = await uploadImageToCloudinary(files[key][0]);
-                  updatedFields[modelKey] = uploadedImage;
+      for (const { key, modelKey } of fieldsToUpdate) {
+        if (files[key]) {
+          const uploadedImage = await uploadImageToCloudinary(files[key][0]);
+          updatedFields[modelKey] = uploadedImage;
 
-                  const existingImage = existingItem[modelKey];
-                  if (existingImage?.public_Id) {
-                      await deleteOnCloudinary(existingImage.public_Id);
-                  }
-              }
+          // Delete the old image on Cloudinary if a new one is provided
+          const existingImage = existingItem[modelKey];
+          if (existingImage?.public_Id) {
+            await deleteOnCloudinary(existingImage.public_Id);
           }
+        }
       }
+    }
 
-      const updatedItem = await ItemImages.findByIdAndUpdate(
-          id,
-          { $set: updatedFields },
-          { new: true }
-      );
+    // Update only the fields that were modified
+    const updatedItem = await ItemImages.findByIdAndUpdate(
+      id,
+      { $set: updatedFields },
+      { new: true }
+    );
 
-      if (!updatedItem) {
-          throw new ApiError(500, "Failed to update item");
-      }
+    if (!updatedItem) {
+      throw new ApiError(500, "Failed to update item");
+    }
 
-      return res.status(200).json(
-          new ApiResponse(200, updatedItem, "Data update successful")
-      );
+    return res.status(200).json(
+      new ApiResponse(200, updatedItem, "Data update successful")
+    );
   } catch (error) {
-      const statusCode = error.statusCode || 500;
-      const errorMessage = error.message || "Internal Server Error";
-      res.status(statusCode).json({
-          success: false,
-          error: errorMessage,
-      });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || "Internal Server Error";
+    res.status(statusCode).json({
+      success: false,
+      error: errorMessage,
+    });
   }
 };
 

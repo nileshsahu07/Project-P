@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors');
 const imageRouter = require("./routes/imageRoutes.js")
 const userRouter = require("./routes/userRoutes.js")
+const aboutRouter = require("./routes/aboutPageRoutes.js")
 const cookieParser = require("cookie-parser")
 
 const app = new express()
@@ -25,7 +26,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(cookieParser())
 
@@ -34,6 +35,7 @@ app.use(cookieParser())
 // })
 app.use("/api",imageRouter)
 app.use("/api",userRouter)
+app.use("/api",aboutRouter)
 
 app.use((err,req,res,next)=>{
     res.status(err.statusCode || 500).json({
