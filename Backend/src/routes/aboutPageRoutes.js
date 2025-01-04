@@ -22,6 +22,6 @@ router.put("/updateAboutData/:id",verifyJWT,admin,upload.fields([
 
 router.delete("/deleteAboutData/:id",verifyJWT,admin,aboutController.deleteAboutPageData);
 
-router.post("/userEmail",aboutController.userEmail);
+// router.post("/userEmail",aboutController.userEmail);
 
 module.exports = router;

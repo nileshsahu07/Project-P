@@ -3,6 +3,7 @@ const cors = require('cors');
 const imageRouter = require("./routes/imageRoutes.js")
 const userRouter = require("./routes/userRoutes.js")
 const aboutRouter = require("./routes/aboutPageRoutes.js")
+const userEmailRouter = require("./routes/userEmailRoutes.js")
 const cookieParser = require("cookie-parser")
 
 const app = new express()
@@ -36,6 +37,7 @@ app.use(cookieParser())
 app.use("/api",imageRouter)
 app.use("/api",userRouter)
 app.use("/api",aboutRouter)
+app.use("/api",userEmailRouter)
 
 app.use((err,req,res,next)=>{
     res.status(err.statusCode || 500).json({

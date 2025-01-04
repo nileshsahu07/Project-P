@@ -24,9 +24,6 @@ const aboutPageSchema = new Schema({
             url:String
         }
     },
-    userEmail:{
-        type:String
-    },
     employeeName:{
         type:String,
     },
