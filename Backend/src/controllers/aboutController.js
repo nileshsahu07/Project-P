@@ -56,13 +56,13 @@ exports.uploadAboutPageData = async function(req,res,next){
 
         const uploadedImages = {
             bigImage: files.bigImage ? await uploadImageToCloudinary(files.bigImage[0]) : undefined,
-            publicationImages: files.publicationImage ? await uploadImageToCloudinary(files.publicationImage[0]) : undefined,
+            publicationImages: files.publicationImages ? await uploadImageToCloudinary(files.publicationImages[0]) : undefined,
             employeeImage: files.employeeImage ? await uploadImageToCloudinary(files.employeeImage[0]) : undefined,
         };
 
         const createdData = await AboutPage.create({
             bigImage: uploadedImages.bigImage,
-            publicationImages: uploadedImages.publicationImage, 
+            publicationImages: uploadedImages.publicationImages, 
             employeeImage: uploadedImages.employeeImage,
             headings,
             firstParas,
@@ -275,63 +275,3 @@ exports.deleteAboutPageData = async (req, res) => {
       });
     }
 };
-
-// exports.userEmail = async (req,res)=>{
-//     try {
-//         const {userEmail} = req.body;
-
-//         if(!userEmail){
-//             throw new ApiError(400,"Email is required !!!")
-//         }
-
-//         const existingEmail = await AboutPage.findOne({userEmail})
-
-//         if(existingEmail){
-//             throw new ApiError(409,"this email is already exists")
-//         }
-
-//         const sent = await AboutPage.create({
-//             userEmail,
-//         })  
-
-//         const yourEmail = await AboutPage.findById(sent._id);
-
-//         if(!yourEmail){
-//             throw new ApiError(401,"failed to send email, please try again!!!")
-//         }
-
-//         return res.status(201).json(
-//             new ApiResponse(200,yourEmail,"Email sent successfully")
-//         )
-
-//     } catch (error) {
-//         const statusCode = error.statusCode || 500;
-//         const errorMessage = error.message || "Internal Server Error";
-//         res.status(statusCode).json({
-//           success: false,
-//           error: errorMessage,
-//         });
-//       }
-// }
-
-// exports.getUserEmail = async (req, res) => {
-//     try {
-//       const aboutData = await AboutPage.find();
-  
-//       if (!aboutData || aboutData.length === 0) {
-//         throw new ApiError(404, "No data found");
-//       }
-  
-//       return res.status(200).json(
-//         new ApiResponse(200, aboutData, "Data fetched successfully")
-//       );
-//     } catch (error) {
-//       const statusCode = error.statusCode || 500;
-//       const errorMessage = error.message || "Internal Server Error";
-//       res.status(statusCode).json({
-//         success: false,
-//         error: errorMessage,
-//       });
-//     }
-// };
-
