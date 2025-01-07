@@ -875,3 +875,224 @@ const {uploadOnCloudinary,deleteOnCloudinary} = require("../Utils/cloudinary.js"
 //       });
 //   }
 // };
+
+
+
+
+
+
+
+
+
+// exports.uploadItemImages = async (req, res) => {
+//   try {
+//     const {
+//       title,
+//       sub_title,
+//       category,
+//       imageDesc,
+//       keyInfoHeading,
+//       keyInfoDesc,
+//       bigImageDesc,
+//       personName,
+//       sliderHeading,
+//       sliderDesc,
+//       thirdImageHeading,
+//       thirdImageDesc,
+//       feedbackHeading,
+//       feedbackDesc,
+//       feedbackName,
+//     } = req.body;
+    
+//     const files = req.files; // Access all uploaded files
+    
+//     // Combine body fields into an array and check if at least one field has a value
+//     const bodyFields = [
+//       title,
+//       sub_title,
+//       category,
+//       imageDesc,
+//       keyInfoHeading,
+//       keyInfoDesc,
+//       bigImageDesc,
+//       personName,
+//       sliderHeading,
+//       sliderDesc,
+//       thirdImageHeading,
+//       thirdImageDesc,
+//       feedbackHeading,
+//       feedbackDesc,
+//       feedbackName,
+//     ];
+//     console.log(req.files)
+    
+//     const hasBodyField = bodyFields.some((field) => field && field.trim().length > 0);
+//     const hasFileField = files && Object.keys(files).length > 0;
+    
+//     if (!hasBodyField && !hasFileField) {
+//       throw new ApiError(400, "At least one field or image is required!");
+//     }
+    
+//       const uploadImageToCloudinary = async (file) => {
+//           const imageLocalPath = file.path;
+//           const uploadResult = await uploadOnCloudinary(imageLocalPath);
+//           return {
+//               public_Id: uploadResult.public_id,
+//               url: uploadResult.secure_url,
+//           };
+//       };
+
+//       const uploadedImages = {
+//           image: files.image ? await uploadImageToCloudinary(files.image[0]) : undefined,
+//           bigImage: files.bigImage ? await uploadImageToCloudinary(files.bigImage[0]) : undefined,
+//           personImage: files.personImage ? await uploadImageToCloudinary(files.personImage[0]) : undefined,
+//           sliderImage: files.sliderImage ? await uploadImageToCloudinary(files.sliderImage[0]) : undefined,
+//           thirdImage: files.thirdImage ? await uploadImageToCloudinary(files.thirdImage[0]) : undefined,
+//           feedbackImage: files.feedbackImage ? await uploadImageToCloudinary(files.feedbackImage[0]) : undefined,
+//       };
+
+//       const itemImages = await ItemImages.create({
+//           image: uploadedImages.image,
+//           bigImage: uploadedImages.bigImage,
+//           personImage: uploadedImages.personImage,
+//           sliderImage: uploadedImages.sliderImage,
+//           thirdImage: uploadedImages.thirdImage,
+//           feedbackImage: uploadedImages.feedbackImage,
+//           title,
+//           sub_title,
+//           category,
+//           imageDesc,
+//           keyInfoHeading,
+//           keyInfoDesc,
+//           bigImageDesc,
+//           personName,
+//           sliderHeading,
+//           sliderDesc,
+//           thirdImageHeading,
+//           thirdImageDesc,
+//           feedbackHeading,
+//           feedbackDesc,
+//           feedbackName,
+//       });
+
+//       const uploadedInfo = await ItemImages.findById(itemImages._id);
+
+//       if (!uploadedInfo) throw new ApiError(500, "Project Data creation failed, please try again.");
+
+//       return res.status(201).json(
+//           new ApiResponse(200, uploadedInfo, "Project Data uploaded successfully")
+//       );
+//   } catch (error) {
+//       const statusCode = error.statusCode || 500;
+//       const errorMessage = error.message || "Internal Server Error";
+//       res.status(statusCode).json({
+//           success: false,
+//           error: errorMessage,
+//       });
+//   }
+// };
+
+
+
+// exports.uploadItemImages = async (req, res) => {
+//     try {
+//       const {
+//         title,
+//         sub_title,
+//         category,
+//         imageDesc,
+//         keyInfoHeading,
+//         keyInfoDesc,
+//         sliderHeading,
+//         thirdImageHeading,
+//         thirdImageDesc,
+//         feedbackHeading,
+//       } = req.body;
+  
+//       const files = req.files;
+//       console.log(files)
+  
+//       const processImage = async (file) => {
+//         if (!file) return null;
+//         const result = await uploadOnCloudinary(file.path);
+//         return { public_Id: result.public_id, url: result.secure_url };
+//       };
+  
+//       const processImageArray = async (fieldName) => {
+//         return files[fieldName]
+//           ? Promise.all(files[fieldName].map((file) => processImage(file)))
+//           : [];
+//       };
+  
+//       // Upload images
+//       const image = files.image ? await processImage(files.image[0]) : null;
+//       const thirdImage = files.thirdImage
+//         ? await processImage(files.thirdImage[0])
+//         : null;
+  
+//       // Handle nested arrays for bigImage, personImage, sliderImage, and feedbackImage
+//       const bigImage = {
+//         firstImage: await processImageArray("bigImage.firstImage"),
+//         secondImage: await processImageArray("bigImage.secondImage"),
+//       };
+  
+//       const personImage = {
+//         firstImage: await processImageArray("personImage.firstImage"),
+//         secondImage: await processImageArray("personImage.secondImage"),
+//       };
+  
+//       const sliderImage = {
+//         firstImage: await processImageArray("sliderImage.firstImage"),
+//         secondImage: await processImageArray("sliderImage.secondImage"),
+//       };
+  
+//       const feedbackImage = {
+//         firstImage: await processImageArray("feedbackImage.firstImage"),
+//         secondImage: await processImageArray("feedbackImage.secondImage"),
+//       };
+  
+//       // Parse descriptions and other array fields from the body
+//       const bigImageDesc = JSON.parse(req.body.bigImageDesc || "[]");
+//       const personName = JSON.parse(req.body.personName || "[]");
+//       const sliderDesc = JSON.parse(req.body.sliderDesc || "[]");
+//       const feedbackDesc = JSON.parse(req.body.feedbackDesc || "[]");
+//       const feedbackName = JSON.parse(req.body.feedbackName || "[]");
+  
+//       // Create a new item image document
+//       const itemImageData = await ItemImages.create({
+//         image,
+//         title,
+//         sub_title,
+//         category,
+//         imageDesc,
+//         keyInfoHeading,
+//         keyInfoDesc,
+//         bigImage,
+//         bigImageDesc,
+//         personImage,
+//         personName,
+//         sliderHeading,
+//         sliderImage,
+//         sliderDesc,
+//         thirdImage,
+//         thirdImageHeading,
+//         thirdImageDesc,
+//         feedbackHeading,
+//         feedbackDesc,
+//         feedbackImage,
+//         feedbackName,
+//       });
+  
+//       if (!itemImageData) throw new ApiError(500, "Failed to upload item data");
+  
+//       return res
+//         .status(201)
+//         .json(new ApiResponse(201, itemImageData, "Item images uploaded successfully"));
+//     } catch (error) {
+//       const statusCode = error.statusCode || 500;
+//       res.status(statusCode).json({
+//         success: false,
+//         error: error.message || "Internal Server Error",
+//       });
+//     }
+//   };
