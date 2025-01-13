@@ -6,10 +6,10 @@ const admin = require("../middlewares/admin.js")
 const router = express.Router();
 
 
-router.post("/uploadAboutData",verifyJWT,admin,upload.fields([
+router.post("/uploadAboutData",upload.fields([
     { name: 'bigImage', maxCount: 1 },
     { name: 'publicationImages', maxCount: 1 },
-    { name: 'employeeImage', maxCount: 1 },
+    { name: 'employeeImages', maxCount: 20 },
 ]),aboutController.uploadAboutPageData);
 
 router.get("/getAboutData",aboutController.getAboutPageData);

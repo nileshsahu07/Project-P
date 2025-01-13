@@ -8,8 +8,8 @@ const {
 
 exports.uploadItemImages = async (req, res) => {
   try {
-    const { title, sub_title, category, imageDesc, sliderHeading, sliderDescriptions, feedbackHeading, feedbackDescriptions, personNames, keyInfoHeading, keyInfoSubHeading, firstImageName, firstImageDesc, secondImageName, secondImageDesc } = req.body;
-    const { image, firstImage, secondImage, firstProfilePhoto, secondProfilePhoto } = req.files;
+    const { title, sub_title, category, imageDesc, oneSideHeading,oneSideDesc, sliderHeading, sliderDescriptions, feedbackHeading, feedbackDescriptions, personNames, keyInfoHeading, keyInfoSubHeading,teamInfoHeading,teamInfoSubHeading, firstImageName, firstImageDesc, secondImageName, secondImageDesc } = req.body;
+    const { image,oneSideImage, firstImage, secondImage, firstProfilePhoto, secondProfilePhoto } = req.files;
 
     const newItemImage = new ItemImages();
 
@@ -17,6 +17,12 @@ exports.uploadItemImages = async (req, res) => {
     if (image && image[0]) {
       const imageCloudinary = await uploadOnCloudinary(image[0].path);
       newItemImage.image = { public_Id: imageCloudinary.public_id, url: imageCloudinary.secure_url };
+    }
+
+    if (oneSideImage && oneSideImage[0]) {
+      const oneSideImageCloudinary = await uploadOnCloudinary(oneSideImage[0].path);
+      // console.log(oneSideImageCloudinary)
+      newItemImage.oneSideImage = { public_Id: oneSideImageCloudinary.public_id, url: oneSideImageCloudinary.secure_url };
     }
 
     if (firstImage && firstImage[0]) {
@@ -66,11 +72,13 @@ exports.uploadItemImages = async (req, res) => {
     if (sub_title) newItemImage.sub_title = sub_title;
     if (category) newItemImage.category = category;
     if (imageDesc) newItemImage.imageDesc = imageDesc;
+    if (oneSideHeading) newItemImage.oneSideHeading = oneSideHeading;
+    if (oneSideDesc) newItemImage.oneSideDesc = oneSideDesc;
     if (sliderHeading) newItemImage.sliderHeading = sliderHeading;
     if (feedbackHeading) newItemImage.feedbackHeading = feedbackHeading;
 
     const sliderImages = [];
-    if (req.files.sliderImages && sliderDescriptions) {
+    if (req.files.sliderImages || sliderDescriptions) {
       const DescriptionsArr = Array.isArray(sliderDescriptions) ? sliderDescriptions : [sliderDescriptions];
       for (let i = 0; i < req.files.sliderImages.length; i++) {
         const file = req.files.sliderImages[i];
@@ -86,7 +94,7 @@ exports.uploadItemImages = async (req, res) => {
     if (sliderImages.length > 0) newItemImage.sliderImages = sliderImages;
 
     const feedback = [];
-    if (req.files.feedbackImages && feedbackDescriptions && personNames) {
+    if (req.files.feedbackImages || feedbackDescriptions || personNames) {
       const feebackDescArr = Array.isArray(feedbackDescriptions) ? feedbackDescriptions : [feedbackDescriptions];
       const feedbackNamesArr = Array.isArray(personNames) ? personNames : [personNames];
       for (let i = 0; i < req.files.feedbackImages.length; i++) {
@@ -105,7 +113,7 @@ exports.uploadItemImages = async (req, res) => {
     if (feedback.length > 0) newItemImage.feedback = feedback;
 
     const keyInfo = [];
-    if (keyInfoHeading && keyInfoSubHeading) {
+    if (keyInfoHeading || keyInfoSubHeading) {
       const HeadingArr = Array.isArray(keyInfoHeading) ? keyInfoHeading : [keyInfoHeading];
       const subHeadingArr = Array.isArray(keyInfoSubHeading) ? keyInfoSubHeading : [keyInfoSubHeading];
       for (let i = 0; i < HeadingArr.length; i++) {
@@ -118,6 +126,21 @@ exports.uploadItemImages = async (req, res) => {
       }
     }
     if (keyInfo.length > 0) newItemImage.keyInfo = keyInfo;
+
+    const teamInfo = [];
+    if (teamInfoHeading || teamInfoSubHeading) {
+      const HeadingArr = Array.isArray(teamInfoHeading) ? teamInfoHeading : [teamInfoHeading];
+      const subHeadingArr = Array.isArray(teamInfoSubHeading) ? teamInfoSubHeading : [teamInfoSubHeading];
+      for (let i = 0; i < HeadingArr.length; i++) {
+        const headings = HeadingArr[i] || "";
+        const subHeadings = subHeadingArr[i] || "";
+        teamInfo.push({
+          heading: headings,
+          subHeading: subHeadings,
+        });
+      }
+    }
+    if (teamInfo.length > 0) newItemImage.teamInfo = teamInfo;
 
     const savedItemImage = await newItemImage.save();
 
@@ -136,6 +159,19 @@ exports.uploadItemImages = async (req, res) => {
 
 exports.getItemImages = async (req, res) => {
   try {
+    const {id} = req.params;
+
+    if(id){
+      const itemById = await ItemImages.findById(id)
+
+      if(!itemById){
+        throw new ApiError(404, "No data found by id");
+      }
+      return res
+      .status(200)
+      .json(new ApiResponse(200, itemById, "Data fetched successfully"));
+    }
+    
     const itemData = await ItemImages.find();
 
     if (!itemData || itemData.length === 0) {
@@ -158,9 +194,8 @@ exports.getItemImages = async (req, res) => {
 exports.updateItemImages = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, sub_title, category, imageDesc, sliderHeading, sliderDescriptions, feedbackHeading, feedbackDescriptions, personNames, keyInfoHeading, keyInfoSubHeading, firstImageName, firstImageDesc, secondImageName, secondImageDesc } = req.body;
-    const { image, firstImage, secondImage, firstProfilePhoto, secondProfilePhoto } = req.files;
-    console.log(image)
+    const { title, sub_title, category, imageDesc, oneSideHeading,oneSideDesc,sliderHeading, sliderDescriptions, feedbackHeading, feedbackDescriptions, personNames, keyInfoHeading, keyInfoSubHeading,teamInfoHeading, teamInfoSubHeading, firstImageName, firstImageDesc, secondImageName, secondImageDesc } = req.body;
+    const { image, oneSideImage, firstImage, secondImage, firstProfilePhoto, secondProfilePhoto } = req.files;
 
     // Find the item by ID
     const item = await ItemImages.findById(id);
@@ -173,6 +208,8 @@ exports.updateItemImages = async (req, res) => {
     if (sub_title) item.sub_title = sub_title;
     if (category) item.category = category;
     if (imageDesc) item.imageDesc = imageDesc;
+    if (oneSideHeading) item.oneSideHeading = oneSideHeading;
+    if (oneSideDesc) item.oneSideDesc = oneSideDesc;
     if (sliderHeading) item.sliderHeading = sliderHeading;
     if (feedbackHeading) item.feedbackHeading = feedbackHeading;
 
@@ -180,6 +217,11 @@ exports.updateItemImages = async (req, res) => {
       await deleteOnCloudinary(item.image.public_Id);
       const imageCloudinary = await uploadOnCloudinary(image[0].path);
       item.image = { public_Id: imageCloudinary.public_id, url: imageCloudinary.secure_url };
+    }
+    if (oneSideImage && oneSideImage[0]) {
+      await deleteOnCloudinary(item.oneSideImage.public_Id);
+      const oneSideImageCloudinary = await uploadOnCloudinary(oneSideImage[0].path);
+      item.oneSideImage = { public_Id: oneSideImageCloudinary.public_id, url: oneSideImageCloudinary.secure_url };
     }
 
     if (firstImage && firstImage[0]) {
@@ -208,7 +250,7 @@ exports.updateItemImages = async (req, res) => {
     if (secondImageDesc) item.bigImage.secondImageSection.description = secondImageDesc;
     if (secondImageName) item.bigImage.secondImageSection.name = secondImageName;
 
-    if (req.files.sliderImages && sliderDescriptions) {
+    if (req.files.sliderImages || sliderDescriptions) {
       const DescriptionsArr = Array.isArray(sliderDescriptions) ? sliderDescriptions : [sliderDescriptions];
       
       for (const img of item.sliderImages) {
@@ -228,7 +270,7 @@ exports.updateItemImages = async (req, res) => {
       }
     }
 
-    if (req.files.feedbackImages && feedbackDescriptions && personNames) {
+    if (req.files.feedbackImages || feedbackDescriptions || personNames) {
       const feebackDescArr = Array.isArray(feedbackDescriptions) ? feedbackDescriptions : [feedbackDescriptions];
       const feedbackNamesArr = Array.isArray(personNames) ? personNames : [personNames];
 
@@ -251,7 +293,7 @@ exports.updateItemImages = async (req, res) => {
       }
     }
 
-    if (keyInfoHeading && keyInfoSubHeading) {
+    if (keyInfoHeading || keyInfoSubHeading) {
       const HeadingArr = Array.isArray(keyInfoHeading) ? keyInfoHeading : [keyInfoHeading];
       const subHeadingArr = Array.isArray(keyInfoSubHeading) ? keyInfoSubHeading : [keyInfoSubHeading];
       item.keyInfo = []; // Clear existing key info
@@ -261,6 +303,21 @@ exports.updateItemImages = async (req, res) => {
         const subHeadings = subHeadingArr[i] || "";
 
         item.keyInfo.push({
+          heading: headings,
+          subHeading: subHeadings,
+        });
+      }
+    }
+    if (teamInfoHeading || teamInfoSubHeading) {
+      const HeadingArr = Array.isArray(teamInfoHeading) ? teamInfoHeading : [teamInfoHeading];
+      const subHeadingArr = Array.isArray(teamInfoSubHeading) ? teamInfoSubHeading : [teamInfoSubHeading];
+      item.teamInfo = []; // Clear existing key info
+
+      for (let i = 0; i < HeadingArr.length; i++) {
+        const headings = HeadingArr[i] || "";
+        const subHeadings = subHeadingArr[i] || "";
+
+        item.teamInfo.push({
           heading: headings,
           subHeading: subHeadings,
         });
@@ -295,6 +352,10 @@ exports.deleteItemById = async (req, res) => {
     // Delete all associated images from Cloudinary
     if (item.image && item.image.public_Id) {
       await deleteOnCloudinary(item.image.public_Id);
+    }
+
+    if (item.oneSideImage && item.oneSideImage.public_Id) {
+      await deleteOnCloudinary(item.oneSideImage.public_Id);
     }
 
     if (item.bigImage) {

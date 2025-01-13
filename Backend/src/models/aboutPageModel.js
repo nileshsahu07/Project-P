@@ -2,6 +2,33 @@ const { default: mongoose } = require("mongoose");
 
 const {model,Schema} = mongoose;
 
+const employeeCardSchema = new Schema({
+    public_Id : {
+        type:String
+    },
+    url:{
+        type:String
+    },
+    employeeName:{
+        type:String
+    },
+    employeeRole:{
+        type:String
+    },
+    employeeDesc:{
+        type:String
+    },
+    employeePara:{
+        type:String
+    },
+    employeeEmail:{
+        type:String
+    },
+    employeeLinkedin:{
+        type:String
+    }
+})
+
 const aboutPageSchema = new Schema({
     headings:{
         type:String,
@@ -24,33 +51,9 @@ const aboutPageSchema = new Schema({
             url:String
         }
     },
-    employeeName:{
-        type:String,
-    },
-    employeeRole:{
-        type:String,
-    },
-    employeeImage:{
-        type:{
-            public_Id:String,
-            url:String
-        }
-    },
-    employeeDesc:{
-        type:String
-    },
-    employeeParas:{
-        type:String
-    },
-    EmailLink:{
-        type:String
-    },
-    LinkedinLink:{
-        type:String
-    },
-    InstaLink:{
-        type:String
-    },
+
+    employeeCard:[employeeCardSchema],
+
     companyName:{
         type:String
     },

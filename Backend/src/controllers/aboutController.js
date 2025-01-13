@@ -9,13 +9,12 @@ exports.uploadAboutPageData = async function(req,res,next){
             headings,
             firstParas,
             secondParas,
-            employeeName,
-            employeeRole,
-            employeeDesc,
+            employeeNames,
+            employeeRoles,
+            employeeDescs,
             employeeParas,
-            EmailLink,
-            LinkedinLink,
-            InstaLink,
+            employeeEmails,
+            employeeLinkedins,
             companyName,
             companyCoNum,
             companyAdd
@@ -27,13 +26,6 @@ exports.uploadAboutPageData = async function(req,res,next){
             headings,
             firstParas,
             secondParas,
-            employeeName,
-            employeeRole,
-            employeeDesc,
-            employeeParas,
-            EmailLink,
-            LinkedinLink,
-            InstaLink,
             companyName,
             companyCoNum,
             companyAdd
@@ -54,26 +46,52 @@ exports.uploadAboutPageData = async function(req,res,next){
             };
         };
 
+        const employeeCard = [];
+
+        if(files?.employeeImages && employeeNames && employeeRoles && employeeDescs && employeeParas && employeeEmails && employeeLinkedins ){
+            const NamesArr = Array.isArray(employeeNames) ? employeeNames : [employeeNames];
+            const RolesArr = Array.isArray(employeeRoles) ? employeeRoles : [employeeRoles];
+            const DescsArr = Array.isArray(employeeDescs) ? employeeDescs : [employeeDescs];
+            const ParasArr = Array.isArray(employeeParas) ? employeeParas : [employeeParas];
+            const EmailsArr = Array.isArray(employeeEmails) ? employeeEmails : [employeeEmails];
+            const LinkedinsArr = Array.isArray(employeeLinkedins) ? employeeLinkedins : [employeeLinkedins];
+
+            for(let i=0; i<files?.employeeImages.length; i++){
+                const file = files?.employeeImages[i];
+                const names = NamesArr[i] || "";
+                const roles = RolesArr[i] || "";
+                const descs = DescsArr[i] || "";
+                const paras = ParasArr[i] || "";
+                const emails = EmailsArr[i] || "";
+                const linkedins = LinkedinsArr[i] || "";
+
+                const result = await uploadOnCloudinary(file.path)
+                employeeCard.push({
+                    public_Id: result.public_id,
+                    url: result.secure_url,
+                    employeeName: names,
+                    employeeRole : roles,
+                    employeeDesc : descs,
+                    employeePara : paras,
+                    employeeEmail : emails,
+                    employeeLinkedin : linkedins,
+                })
+            }
+        }
+
         const uploadedImages = {
             bigImage: files.bigImage ? await uploadImageToCloudinary(files.bigImage[0]) : undefined,
             publicationImages: files.publicationImages ? await uploadImageToCloudinary(files.publicationImages[0]) : undefined,
-            employeeImage: files.employeeImage ? await uploadImageToCloudinary(files.employeeImage[0]) : undefined,
+            // employeeImage: files.employeeImage ? await uploadImageToCloudinary(files.employeeImage[0]) : undefined,
         };
 
         const createdData = await AboutPage.create({
             bigImage: uploadedImages.bigImage,
             publicationImages: uploadedImages.publicationImages, 
-            employeeImage: uploadedImages.employeeImage,
+            employeeCard,
             headings,
             firstParas,
             secondParas,
-            employeeName,
-            employeeRole,
-            employeeDesc,
-            employeeParas,
-            EmailLink,
-            LinkedinLink,
-            InstaLink,
             companyName,
             companyCoNum,
             companyAdd,
